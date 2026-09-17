@@ -1,4 +1,4 @@
-import {StyleSheet, View} from "react-native";
+import { StyleSheet, View } from "react-native";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import Home from "@/screen/home/home";
 export default function HomeScreen() {
@@ -6,7 +6,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <Home></Home>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({

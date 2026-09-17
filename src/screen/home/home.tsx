@@ -1,28 +1,59 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 import { Button } from "@expo/ui";
 import { TEST_IDS } from "@/constants/testIds";
+import { router } from "expo-router";
 
-let content;
 export default function home() {
-  content = (
-    <View style={styles.view}>
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title} testID={TEST_IDS.HOME_TITLE}>
+        EDH Table
+      </Text>
+
       <Button
-        testID={TEST_IDS.HOME_BUTTON}
-        label={"Done"}
+        testID={TEST_IDS.HOME_BUTTON_START_GAME}
+        label={"START GAME"}
         onPress={() => {
-          console.log("press button");
+          router.push("/screen/numberPlayer");
         }}
-      ></Button>
+        style={styles.button}
+      />
+
+      <Button
+        testID={TEST_IDS.HOME_BUTTON_SETTINGS}
+        label={"SETTINGS"}
+        onPress={() => {
+          console.log("Settings button pressed");
+        }}
+        style={styles.button}
+      />
     </View>
   );
-
-  return content;
 }
 
 const styles = StyleSheet.create({
-  view: {
-    display: "flex",
-    alignContent: "flex-end",
+  container: {
+    flex: 1,
+    backgroundColor: "#ffffff",
     justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "#000000",
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  button: {
+    width: 220,
+    height: 48,
+    marginVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: "#000",
+    borderRadius: 999,
+    borderWidth: 1,
   },
 });
