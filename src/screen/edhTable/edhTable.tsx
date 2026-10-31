@@ -55,27 +55,26 @@ export default function edhTable() {
     }));
   };
 
+  const resetCounter = (player: number, key: "poison" | "experience") => {
+    updatePlayerState(player, (current) => ({
+      ...current,
+      [key]: 0,
+    }));
+  };
+
+  const incrementCounter = (player: number, key: "poison" | "experience") => {
+    updatePlayerState(player, (current) => ({
+      ...current,
+      [key]: current[key] + 1,
+    }));
+  };
+
   const adjustLife = (player: number, delta: number) => {
     updatePlayerState(player, (current) => ({
       ...current,
       life: Math.max(0, current.life + delta),
     }));
   };
-
-  const adjustPoison = (player: number, delta: number) => {
-    updatePlayerState(player, (current) => ({
-      ...current,
-      poison: Math.max(0, current.poison + delta),
-    }));
-  };
-
-  const adjustExperience = (player: number, delta: number) => {
-    updatePlayerState(player, (current) => ({
-      ...current,
-      experience: Math.max(0, current.experience + delta),
-    }));
-  };
-
   const setStartingLife = (player: number, value: number) => {
     updatePlayerState(player, (current) => ({
       ...current,
@@ -217,36 +216,26 @@ export default function edhTable() {
 
                 <View style={styles.statRow}>
                   <Text style={styles.metaLabel}>Poison</Text>
-                  <View style={styles.counterRow}>
-                    <Button
-                      label="-"
-                      onPress={() => adjustPoison(playerNumber, -1)}
-                      style={styles.button}
-                    />
-                    <Text style={styles.metaValue}>{player.poison}</Text>
-                    <Button
-                      label="+"
-                      onPress={() => adjustPoison(playerNumber, 1)}
-                      style={styles.button}
-                    />
-                  </View>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => incrementCounter(playerNumber, "poison")}
+                    onLongPress={() => resetCounter(playerNumber, "poison")}
+                    style={styles.singleCounterButton}
+                  >
+                    <Text style={styles.singleCounterText}>{player.poison}</Text>
+                  </Pressable>
                 </View>
 
                 <View style={styles.statRow}>
                   <Text style={styles.metaLabel}>Experience</Text>
-                  <View style={styles.counterRow}>
-                    <Button
-                      label="-"
-                      onPress={() => adjustExperience(playerNumber, -1)}
-                      style={styles.button}
-                    />
-                    <Text style={styles.metaValue}>{player.experience}</Text>
-                    <Button
-                      label="+"
-                      onPress={() => adjustExperience(playerNumber, 1)}
-                      style={styles.button}
-                    />
-                  </View>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => incrementCounter(playerNumber, "experience")}
+                    onLongPress={() => resetCounter(playerNumber, "experience")}
+                    style={styles.singleCounterButton}
+                  >
+                    <Text style={styles.singleCounterText}>{player.experience}</Text>
+                  </Pressable>
                 </View>
 
                 <View style={styles.commanderSection}>
@@ -420,13 +409,18 @@ const styles = StyleSheet.create({
   statRow: {
     width: "100%",
     marginBottom: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
   },
   metaLabel: {
     fontSize: 14,
     fontWeight: "700",
     color: "#333",
-    marginBottom: 6,
+    marginBottom: 0,
     textAlign: "left",
+    flexShrink: 1,
   },
   metaValue: {
     minWidth: 24,
@@ -440,6 +434,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: 8,
+  },
+  singleCounterButton: {
+    minWidth: 90,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#111",
+    backgroundColor: "#fff",
+  },
+  singleCounterText: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#111",
   },
   commanderSection: {
     width: "100%",
