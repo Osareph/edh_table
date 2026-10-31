@@ -3,137 +3,59 @@ import { useEdhTable } from "@/hooks/useEdhTable";
 import { Button } from "@expo/ui";
 import { useMemo, useState } from "react";
 import { router } from "expo-router";
-
-type PlayerState = {
-  life: number;
-  poison: number;
-  experience: number;
-  startingLife: number;
-  commanderDamage: Record<number, number>;
-};
-
-const DEFAULT_STARTING_LIFE = 40;
-const STARTING_LIFE_OPTIONS = [20, 40, 60];
+import {
+  adjustCommanderDamage,
+  adjustLife,
+  createInitialPlayers,
+  getDefaultPlayerState,
+  getPlayer,
+  getPlayerCount,
+  incrementCounter,
+  resetCounter,
+  resetGame,
+  resetRound,
+  setStartingLife,
+  STARTING_LIFE_OPTIONS,
+  type PlayerState,
+} from "@/domain/edhTable";
 
 export default function edhTable() {
   const { numberOfPlayers } = useEdhTable();
   const [diceValue, setDiceValue] = useState<number | null>(null);
   const [coinSide, setCoinSide] = useState<"Heads" | "Tails" | null>(null);
-  const [players, setPlayers] = useState<Record<number, PlayerState>>({
-    1: { life: DEFAULT_STARTING_LIFE, poison: 0, experience: 0, startingLife: DEFAULT_STARTING_LIFE, commanderDamage: { 1: 0, 2: 0, 3: 0, 4: 0 } },
-    2: { life: DEFAULT_STARTING_LIFE, poison: 0, experience: 0, startingLife: DEFAULT_STARTING_LIFE, commanderDamage: { 1: 0, 2: 0, 3: 0, 4: 0 } },
-    3: { life: DEFAULT_STARTING_LIFE, poison: 0, experience: 0, startingLife: DEFAULT_STARTING_LIFE, commanderDamage: { 1: 0, 2: 0, 3: 0, 4: 0 } },
-    4: { life: DEFAULT_STARTING_LIFE, poison: 0, experience: 0, startingLife: DEFAULT_STARTING_LIFE, commanderDamage: { 1: 0, 2: 0, 3: 0, 4: 0 } },
-  });
+  const [players, setPlayers] = useState<Record<number, PlayerState>>(createInitialPlayers());
 
-  const playerCount = useMemo(() => {
-    if (
-      numberOfPlayers === 2 ||
-      numberOfPlayers === 3 ||
-      numberOfPlayers === 4
-    ) {
-      return numberOfPlayers;
-    }
-    return 2;
-  }, [numberOfPlayers]);
-
-  const getDefaultPlayerState = (): PlayerState => ({
-    life: DEFAULT_STARTING_LIFE,
-    poison: 0,
-    experience: 0,
-    startingLife: DEFAULT_STARTING_LIFE,
-    commanderDamage: { 1: 0, 2: 0, 3: 0, 4: 0 },
-  });
-
-  const updatePlayerState = (
-    player: number,
-    updater: (current: PlayerState) => PlayerState,
-  ) => {
-    setPlayers((prev) => ({
-      ...prev,
-      [player]: updater(prev[player] ?? getDefaultPlayerState()),
-    }));
+  const playerCount = useMemo(() => getPlayerCount(numberOfPlayers), [numberOfPlayers]);
+  const handleAdjustLife = (player: number, delta: number) => {
+    setPlayers((prev) => adjustLife(prev, player, delta));
   };
 
-  const resetCounter = (player: number, key: "poison" | "experience") => {
-    updatePlayerState(player, (current) => ({
-      ...current,
-      [key]: 0,
-    }));
+  const handleIncrementCounter = (player: number, key: "poison" | "experience") => {
+    setPlayers((prev) => incrementCounter(prev, player, key));
   };
 
-  const incrementCounter = (player: number, key: "poison" | "experience") => {
-    updatePlayerState(player, (current) => ({
-      ...current,
-      [key]: current[key] + 1,
-    }));
+  const handleResetCounter = (player: number, key: "poison" | "experience") => {
+    setPlayers((prev) => resetCounter(prev, player, key));
   };
 
-  const adjustLife = (player: number, delta: number) => {
-    updatePlayerState(player, (current) => ({
-      ...current,
-      life: Math.max(0, current.life + delta),
-    }));
-  };
-  const setStartingLife = (player: number, value: number) => {
-    updatePlayerState(player, (current) => ({
-      ...current,
-      startingLife: value,
-      life: value,
-    }));
+  const handleSetStartingLife = (player: number, value: number) => {
+    setPlayers((prev) => setStartingLife(prev, player, value));
   };
 
-  const adjustCommanderDamage = (
+  const handleAdjustCommanderDamage = (
     sourcePlayer: number,
     targetPlayer: number,
     delta: number,
   ) => {
-    setPlayers((prev) => {
-      const current = prev[targetPlayer] ?? getDefaultPlayerState();
-
-      const nextCommanderDamage = {
-        ...current.commanderDamage,
-        [sourcePlayer]: Math.max(
-          0,
-          (current.commanderDamage[sourcePlayer] ?? 0) + delta,
-        ),
-      };
-
-      return {
-        ...prev,
-        [targetPlayer]: {
-          ...current,
-          commanderDamage: nextCommanderDamage,
-        },
-      };
-    });
+    setPlayers((prev) => adjustCommanderDamage(prev, targetPlayer, sourcePlayer, delta));
   };
 
-  const resetRound = () => {
-    setPlayers((prev) => {
-      const nextPlayers: Record<number, PlayerState> = {};
-      for (let i = 1; i <= playerCount; i += 1) {
-        const current = prev[i] ?? getDefaultPlayerState();
-        nextPlayers[i] = {
-          ...current,
-          life: current.startingLife,
-          poison: 0,
-          experience: current.experience,
-          commanderDamage: { 1: 0, 2: 0, 3: 0, 4: 0 },
-        };
-      }
-      return { ...prev, ...nextPlayers };
-    });
+  const handleResetRound = () => {
+    setPlayers((prev) => resetRound(prev, playerCount));
   };
 
-  const resetGame = () => {
-    setPlayers((prev) => {
-      const nextPlayers: Record<number, PlayerState> = {};
-      for (let i = 1; i <= playerCount; i += 1) {
-        nextPlayers[i] = getDefaultPlayerState();
-      }
-      return { ...prev, ...nextPlayers };
-    });
+  const handleResetGame = () => {
+    setPlayers((prev) => resetGame(prev, playerCount));
     setDiceValue(null);
     setCoinSide(null);
   };
@@ -175,7 +97,7 @@ export default function edhTable() {
         <View style={styles.grid}>
           {Array.from({ length: playerCount }, (_, index) => {
             const playerNumber = index + 1;
-            const player = players[playerNumber] ?? getDefaultPlayerState();
+            const player = getPlayer(players, playerNumber);
 
             return (
               <View key={playerNumber} style={styles.playerCard}>
@@ -188,7 +110,7 @@ export default function edhTable() {
                       <Button
                         key={option}
                         label={String(option)}
-                        onPress={() => setStartingLife(playerNumber, option)}
+                        onPress={() => handleSetStartingLife(playerNumber, option)}
                         style={player.startingLife === option ? styles.presetButtonActive : styles.presetButton}
                       />
                     ))}
@@ -202,13 +124,13 @@ export default function edhTable() {
                   <View style={styles.counterRow}>
                     <Button
                       label="-"
-                      onPress={() => adjustLife(playerNumber, -1)}
+                      onPress={() => handleAdjustLife(playerNumber, -1)}
                       style={styles.button}
                     />
                     <Text style={styles.metaValue}>{player.life}</Text>
                     <Button
                       label="+"
-                      onPress={() => adjustLife(playerNumber, 1)}
+                      onPress={() => handleAdjustLife(playerNumber, 1)}
                       style={styles.button}
                     />
                   </View>
@@ -218,8 +140,8 @@ export default function edhTable() {
                   <Text style={styles.metaLabel}>Poison</Text>
                   <Pressable
                     accessibilityRole="button"
-                    onPress={() => incrementCounter(playerNumber, "poison")}
-                    onLongPress={() => resetCounter(playerNumber, "poison")}
+                    onPress={() => handleIncrementCounter(playerNumber, "poison")}
+                    onLongPress={() => handleResetCounter(playerNumber, "poison")}
                     style={styles.singleCounterButton}
                   >
                     <Text style={styles.singleCounterText}>{player.poison}</Text>
@@ -230,8 +152,8 @@ export default function edhTable() {
                   <Text style={styles.metaLabel}>Experience</Text>
                   <Pressable
                     accessibilityRole="button"
-                    onPress={() => incrementCounter(playerNumber, "experience")}
-                    onLongPress={() => resetCounter(playerNumber, "experience")}
+                    onPress={() => handleIncrementCounter(playerNumber, "experience")}
+                    onLongPress={() => handleResetCounter(playerNumber, "experience")}
                     style={styles.singleCounterButton}
                   >
                     <Text style={styles.singleCounterText}>{player.experience}</Text>
@@ -254,13 +176,13 @@ export default function edhTable() {
                         <View style={styles.counterRow}>
                           <Button
                             label="-"
-                            onPress={() => adjustCommanderDamage(attackerNumber, playerNumber, -1)}
+                            onPress={() => handleAdjustCommanderDamage(attackerNumber, playerNumber, -1)}
                             style={styles.smallButton}
                           />
                           <Text style={styles.metaValue}>{totalDamage}</Text>
                           <Button
                             label="+"
-                            onPress={() => adjustCommanderDamage(attackerNumber, playerNumber, 1)}
+                            onPress={() => handleAdjustCommanderDamage(attackerNumber, playerNumber, 1)}
                             style={styles.smallButton}
                           />
                         </View>
@@ -274,8 +196,8 @@ export default function edhTable() {
         </View>
 
         <View style={styles.footerActions}>
-          <Button label="Reset round" onPress={resetRound} style={styles.resetButton} />
-          <Button label="Reset game" onPress={resetGame} style={styles.resetButton} />
+          <Button label="Reset round" onPress={handleResetRound} style={styles.resetButton} />
+          <Button label="Reset game" onPress={handleResetGame} style={styles.resetButton} />
         </View>
       </ScrollView>
     </View>

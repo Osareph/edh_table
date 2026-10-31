@@ -1,3 +1,1 @@
-# Expo HAS CHANGED
-
-Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
+All skill are in skills-main folder. you can use all .md files in skills-main folder to create your own skill. You can also use the skills in skills-main folder as a reference to create your own skill.
