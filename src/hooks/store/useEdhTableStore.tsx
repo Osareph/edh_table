@@ -12,47 +12,11 @@ interface EdhTableState {
   resetAll: () => void;
 }
 
-const buttonClickedInitialState = {
+const buttonClickedInitialState: Record<2 | 3 | 4, boolean> = {
   2: false,
   3: false,
   4: false,
 };
-
-function setButtonClicked(playerNumber: number, value: boolean) {
-  if (playerNumber === 2) {
-    return (state: EdhTableState) => ({
-      buttonClicked: {
-        ...state.buttonClicked,
-        2: value,
-        3: !value,
-        4: !value,
-      },
-    });
-  } else if (playerNumber === 3) {
-    return (state: EdhTableState) => ({
-      buttonClicked: {
-        ...state.buttonClicked,
-        2: !value,
-        3: value,
-        4: !value,
-      },
-    });
-  } else if (playerNumber === 4) {
-    return (state: EdhTableState) => ({
-      buttonClicked: {
-        ...state.buttonClicked,
-        2: !value,
-        3: !value,
-        4: value,
-      },
-    });
-  }
-  return (state: EdhTableState) => ({
-    buttonClicked: {
-      ...state.buttonClicked,
-    },
-  });
-}
 
 export const useEdhTableStore = create<EdhTableState>()((set) => ({
   numberOfPlayers: 0,
@@ -63,9 +27,19 @@ export const useEdhTableStore = create<EdhTableState>()((set) => ({
   },
   setNumberOfPlayers: (value: number) => set({ numberOfPlayers: value }),
   setButtonClicked: (playerNumber: number, value: boolean) =>
-    set((state) => ({
-      ...setButtonClicked(playerNumber, value)(state),
-    })),
-  resetAll: () =>
-    set({ numberOfPlayers: 0, buttonClicked: buttonClickedInitialState }),
+    set((state) => {
+      const nextState: Record<2 | 3 | 4, boolean> = { 2: false, 3: false, 4: false };
+      const key = playerNumber as 2 | 3 | 4;
+
+      if (key in nextState) {
+        nextState[key] = value;
+      }
+
+      return {
+        ...state,
+        numberOfPlayers: value ? playerNumber : 0,
+        buttonClicked: nextState,
+      };
+    }),
+  resetAll: () => set({ numberOfPlayers: 0, buttonClicked: buttonClickedInitialState }),
 }));

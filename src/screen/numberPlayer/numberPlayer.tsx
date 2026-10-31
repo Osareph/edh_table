@@ -1,13 +1,38 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { TEST_IDS } from "@/constants/testIds";
 import { Button } from "@expo/ui";
 import { router } from "expo-router";
 import { useEdhTable } from "@/hooks/useEdhTable";
 
-let content;
 export default function numberPlayer() {
-  const { setNumberOfPlayers, buttonClicked, setButtonClicked } = useEdhTable();
-  content = (
+  const {
+    numberOfPlayers,
+    resetAll,
+    setNumberOfPlayers,
+    buttonClicked,
+    setButtonClicked,
+  } = useEdhTable();
+
+  const handlePlayerCountSelect = (value: 2 | 3 | 4) => {
+    setNumberOfPlayers(value);
+    setButtonClicked(value, true);
+  };
+
+  const handleStartGame = () => {
+    if (numberOfPlayers === 2 || numberOfPlayers === 3 || numberOfPlayers === 4) {
+      router.navigate("/screen/edhTable");
+      return;
+    }
+
+    Alert.alert("Choose players", "Please select how many players are in the game before starting.");
+  };
+
+  const handleBack = () => {
+    resetAll();
+    router.navigate("/screen/home");
+  };
+
+  return (
     <View style={styles.view}>
       <Text style={styles.title} testID={TEST_IDS.NUMBER_PLAYER_TITLE}>
         Choose Number of Players
@@ -15,57 +40,37 @@ export default function numberPlayer() {
       <Button
         testID={TEST_IDS.NUMBER_PLAYER_BUTTON_2}
         label={"2 Players"}
-        onPress={() => {
-          if (setNumberOfPlayers) {
-            setNumberOfPlayers(2);
-            setButtonClicked(2, !buttonClicked[2]);
-          }
-        }}
+        onPress={() => handlePlayerCountSelect(2)}
         style={buttonClicked[2] ? styles.buttonClicked : styles.button}
       ></Button>
       <Button
         testID={TEST_IDS.NUMBER_PLAYER_BUTTON_3}
         label={"3 Players"}
-        onPress={() => {
-          if (setNumberOfPlayers) {
-            setNumberOfPlayers(3);
-            setButtonClicked(3, !buttonClicked[3]);
-          }
-        }}
+        onPress={() => handlePlayerCountSelect(3)}
         style={buttonClicked[3] ? styles.buttonClicked : styles.button}
       ></Button>
       <Button
         testID={TEST_IDS.NUMBER_PLAYER_BUTTON_4}
         label={"4 Players"}
-        onPress={() => {
-          if (setNumberOfPlayers) {
-            setNumberOfPlayers(4);
-            setButtonClicked(4, !buttonClicked[4]);
-          }
-        }}
+        onPress={() => handlePlayerCountSelect(4)}
         style={buttonClicked[4] ? styles.buttonClicked : styles.button}
       ></Button>
       <View style={styles.footer}>
         <Button
           testID={TEST_IDS.NUMBER_PLAYER_BACK_BUTTON}
           label={"Back"}
-          onPress={() => {
-            router.navigate("/screen/home");
-          }}
+          onPress={handleBack}
           style={styles.button}
         ></Button>
         <Button
           testID={TEST_IDS.NUMBER_PLAYER_START_BUTTON}
           label={"Start"}
-          onPress={() => {
-            router.navigate("/screen/edhTable");
-          }}
+          onPress={handleStartGame}
           style={styles.button}
         ></Button>
       </View>
     </View>
   );
-  return content;
 }
 
 const styles = StyleSheet.create({
