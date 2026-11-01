@@ -12,42 +12,58 @@ import {
   getPlayerCount,
   incrementCounter,
   resetCounter,
-  resetGame,
   resetRound,
-  setStartingLife,
-  STARTING_LIFE_OPTIONS,
   type PlayerState,
 } from "@/domain/edhTable";
 
 export default function edhTable() {
-  const { numberOfPlayers } = useEdhTable();
+  const { numberOfPlayers, startingLife } = useEdhTable();
   const [diceValue, setDiceValue] = useState<number | null>(null);
   const [coinSide, setCoinSide] = useState<"Heads" | "Tails" | null>(null);
-  const [players, setPlayers] = useState<Record<number, PlayerState>>(createInitialPlayers());
+  const [players, setPlayers] = useState<Record<number, PlayerState>>(() => {
+    const basePlayers = createInitialPlayers();
+    return Object.fromEntries(
+      Object.entries(basePlayers).map(([playerNumber, player]) => {
+        const key = Number(playerNumber);
+        return [
+          key,
+          {
+            ...player,
+            startingLife,
+            life: startingLife,
+          },
+        ];
+      }),
+    );
+  });
 
-  const playerCount = useMemo(() => getPlayerCount(numberOfPlayers), [numberOfPlayers]);
+  const playerCount = useMemo(
+    () => getPlayerCount(numberOfPlayers),
+    [numberOfPlayers],
+  );
+
   const handleAdjustLife = (player: number, delta: number) => {
     setPlayers((prev) => adjustLife(prev, player, delta));
   };
 
-  const handleIncrementCounter = (player: number, key: "poison" | "experience") => {
+  const handleIncrementCounter = (
+    player: number,
+    key: "poison" | "experience",
+  ) => {
     setPlayers((prev) => incrementCounter(prev, player, key));
   };
 
   const handleResetCounter = (player: number, key: "poison" | "experience") => {
     setPlayers((prev) => resetCounter(prev, player, key));
   };
-
-  const handleSetStartingLife = (player: number, value: number) => {
-    setPlayers((prev) => setStartingLife(prev, player, value));
-  };
-
   const handleAdjustCommanderDamage = (
     sourcePlayer: number,
     targetPlayer: number,
     delta: number,
   ) => {
-    setPlayers((prev) => adjustCommanderDamage(prev, targetPlayer, sourcePlayer, delta));
+    setPlayers((prev) =>
+      adjustCommanderDamage(prev, targetPlayer, sourcePlayer, delta),
+    );
   };
 
   const handleResetRound = () => {
@@ -55,18 +71,30 @@ export default function edhTable() {
   };
 
   const handleResetGame = () => {
-    setPlayers((prev) => resetGame(prev, playerCount));
+    const resetPlayers = Object.fromEntries(
+      Array.from({ length: playerCount }, (_, index) => {
+        const playerNumber = index + 1;
+        return [
+          playerNumber,
+          {
+            ...getDefaultPlayerState(),
+            startingLife,
+            life: startingLife,
+          },
+        ];
+      }),
+    );
+
+    setPlayers((prev) => ({
+      ...prev,
+      ...resetPlayers,
+    }));
     setDiceValue(null);
     setCoinSide(null);
   };
 
-  const rollDice = () => {
-    setDiceValue(Math.floor(Math.random() * 20) + 1);
-  };
-
-  const flipCoin = () => {
-    setCoinSide(Math.random() > 0.5 ? "Heads" : "Tails");
-  };
+  const rollDice = () => setDiceValue(Math.floor(Math.random() * 20) + 1);
+  const flipCoin = () => setCoinSide(Math.random() > 0.5 ? "Heads" : "Tails");
 
   return (
     <View style={styles.container}>
@@ -84,12 +112,20 @@ export default function edhTable() {
       <View style={styles.toolsRow}>
         <View style={styles.toolGroup}>
           <Text style={styles.toolLabel}>Dice</Text>
-          <Button label={diceValue ? `D20: ${diceValue}` : "Roll D20"} onPress={rollDice} style={styles.toolButton} />
+          <Button
+            label={diceValue ? `D20: ${diceValue}` : "Roll D20"}
+            onPress={rollDice}
+            style={styles.toolButton}
+          />
         </View>
 
         <View style={styles.toolGroup}>
           <Text style={styles.toolLabel}>Coin</Text>
-          <Button label={coinSide ?? "Flip coin"} onPress={flipCoin} style={styles.toolButton} />
+          <Button
+            label={coinSide ?? "Flip coin"}
+            onPress={flipCoin}
+            style={styles.toolButton}
+          />
         </View>
       </View>
 
@@ -102,21 +138,6 @@ export default function edhTable() {
             return (
               <View key={playerNumber} style={styles.playerCard}>
                 <Text style={styles.playerLabel}>Player {playerNumber}</Text>
-
-                <View style={styles.startingLifeBlock}>
-                  <Text style={styles.metaLabel}>Starting life</Text>
-                  <View style={styles.presetRow}>
-                    {STARTING_LIFE_OPTIONS.map((option) => (
-                      <Button
-                        key={option}
-                        label={String(option)}
-                        onPress={() => handleSetStartingLife(playerNumber, option)}
-                        style={player.startingLife === option ? styles.presetButtonActive : styles.presetButton}
-                      />
-                    ))}
-                  </View>
-                </View>
-
                 <Text style={styles.life}>{player.life}</Text>
 
                 <View style={styles.statRow}>
@@ -140,11 +161,17 @@ export default function edhTable() {
                   <Text style={styles.metaLabel}>Poison</Text>
                   <Pressable
                     accessibilityRole="button"
-                    onPress={() => handleIncrementCounter(playerNumber, "poison")}
-                    onLongPress={() => handleResetCounter(playerNumber, "poison")}
+                    onPress={() =>
+                      handleIncrementCounter(playerNumber, "poison")
+                    }
+                    onLongPress={() =>
+                      handleResetCounter(playerNumber, "poison")
+                    }
                     style={styles.singleCounterButton}
                   >
-                    <Text style={styles.singleCounterText}>{player.poison}</Text>
+                    <Text style={styles.singleCounterText}>
+                      {player.poison}
+                    </Text>
                   </Pressable>
                 </View>
 
@@ -152,11 +179,17 @@ export default function edhTable() {
                   <Text style={styles.metaLabel}>Experience</Text>
                   <Pressable
                     accessibilityRole="button"
-                    onPress={() => handleIncrementCounter(playerNumber, "experience")}
-                    onLongPress={() => handleResetCounter(playerNumber, "experience")}
+                    onPress={() =>
+                      handleIncrementCounter(playerNumber, "experience")
+                    }
+                    onLongPress={() =>
+                      handleResetCounter(playerNumber, "experience")
+                    }
                     style={styles.singleCounterButton}
                   >
-                    <Text style={styles.singleCounterText}>{player.experience}</Text>
+                    <Text style={styles.singleCounterText}>
+                      {player.experience}
+                    </Text>
                   </Pressable>
                 </View>
 
@@ -164,7 +197,8 @@ export default function edhTable() {
                   <Text style={styles.metaLabel}>Commander damage</Text>
                   {Array.from({ length: playerCount }, (_, index2) => {
                     const attackerNumber = index2 + 1;
-                    const totalDamage = player.commanderDamage[attackerNumber] ?? 0;
+                    const totalDamage =
+                      player.commanderDamage[attackerNumber] ?? 0;
 
                     if (attackerNumber === playerNumber) {
                       return null;
@@ -172,17 +206,31 @@ export default function edhTable() {
 
                     return (
                       <View key={attackerNumber} style={styles.commanderRow}>
-                        <Text style={styles.commanderText}>P{attackerNumber}</Text>
+                        <Text style={styles.commanderText}>
+                          P{attackerNumber}
+                        </Text>
                         <View style={styles.counterRow}>
                           <Button
                             label="-"
-                            onPress={() => handleAdjustCommanderDamage(attackerNumber, playerNumber, -1)}
+                            onPress={() =>
+                              handleAdjustCommanderDamage(
+                                attackerNumber,
+                                playerNumber,
+                                -1,
+                              )
+                            }
                             style={styles.smallButton}
                           />
                           <Text style={styles.metaValue}>{totalDamage}</Text>
                           <Button
                             label="+"
-                            onPress={() => handleAdjustCommanderDamage(attackerNumber, playerNumber, 1)}
+                            onPress={() =>
+                              handleAdjustCommanderDamage(
+                                attackerNumber,
+                                playerNumber,
+                                1,
+                              )
+                            }
                             style={styles.smallButton}
                           />
                         </View>
@@ -196,8 +244,16 @@ export default function edhTable() {
         </View>
 
         <View style={styles.footerActions}>
-          <Button label="Reset round" onPress={handleResetRound} style={styles.resetButton} />
-          <Button label="Reset game" onPress={handleResetGame} style={styles.resetButton} />
+          <Button
+            label="Reset round"
+            onPress={handleResetRound}
+            style={styles.resetButton}
+          />
+          <Button
+            label="Reset game"
+            onPress={handleResetGame}
+            style={styles.resetButtonPrimary}
+          />
         </View>
       </ScrollView>
     </View>
@@ -207,7 +263,7 @@ export default function edhTable() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#edf6ff",
     padding: 16,
   },
   scrollContent: {
@@ -220,17 +276,17 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
+    fontSize: 30,
+    fontWeight: "800",
     textAlign: "center",
-    color: "#111",
+    color: "#111827",
     flex: 1,
   },
   closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#111",
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#111827",
     alignItems: "center",
     justifyContent: "center",
     marginLeft: 12,
@@ -245,29 +301,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 12,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   toolGroup: {
     flex: 1,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 8,
+    borderColor: "#dbeafe",
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 10,
+    shadowColor: "#93c5fd",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3,
   },
   toolLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#333",
+    color: "#475569",
     marginBottom: 6,
   },
   toolButton: {
     minWidth: 120,
-    height: 38,
-    borderRadius: 10,
+    height: 40,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#111",
+    borderColor: "#cbd5e1",
   },
   grid: {
     flexDirection: "row",
@@ -278,55 +338,29 @@ const styles = StyleSheet.create({
   playerCard: {
     width: "45%",
     minWidth: 170,
-    backgroundColor: "#fff",
-    borderRadius: 16,
+    backgroundColor: "#ffffff",
+    borderRadius: 22,
     padding: 16,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#dbeafe",
+    shadowColor: "#1d4ed8",
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
   },
   playerLabel: {
     fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 10,
-    color: "#222",
-  },
-  startingLifeBlock: {
-    width: "100%",
+    fontWeight: "700",
     marginBottom: 8,
-  },
-  presetRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  presetButton: {
-    flex: 1,
-    minWidth: 40,
-    height: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#111",
-  },
-  presetButtonActive: {
-    flex: 1,
-    minWidth: 40,
-    height: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#111",
-    backgroundColor: "#d3d3d3",
+    color: "#1f2937",
   },
   life: {
-    fontSize: 40,
-    fontWeight: "bold",
+    fontSize: 44,
+    fontWeight: "800",
     marginBottom: 12,
-    color: "#111",
+    color: "#111827",
   },
   statRow: {
     width: "100%",
@@ -339,8 +373,7 @@ const styles = StyleSheet.create({
   metaLabel: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#333",
-    marginBottom: 0,
+    color: "#475569",
     textAlign: "left",
     flexShrink: 1,
   },
@@ -349,7 +382,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 17,
     fontWeight: "700",
-    color: "#111",
+    color: "#111827",
   },
   counterRow: {
     flexDirection: "row",
@@ -364,13 +397,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#111",
-    backgroundColor: "#fff",
+    borderColor: "#dbeafe",
+    backgroundColor: "#f8fafc",
   },
   singleCounterText: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#111",
+    color: "#111827",
   },
   commanderSection: {
     width: "100%",
@@ -380,41 +413,50 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 8,
+    gap: 8,
+    marginTop: 8,
   },
   commanderText: {
     fontSize: 14,
-    color: "#333",
-    fontWeight: "600",
+    fontWeight: "700",
+    color: "#334155",
   },
   button: {
-    minWidth: 44,
+    minWidth: 42,
     height: 36,
-    alignItems: "center",
-    justifyContent: "center",
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#111",
+    borderColor: "#cbd5e1",
+    backgroundColor: "#ffffff",
   },
   smallButton: {
     minWidth: 32,
-    height: 30,
-    alignItems: "center",
-    justifyContent: "center",
+    height: 32,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#111",
+    borderColor: "#cbd5e1",
+    backgroundColor: "#ffffff",
   },
   footerActions: {
-    marginTop: 20,
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 12,
-    alignItems: "center",
+    marginTop: 20,
   },
   resetButton: {
-    minWidth: 180,
-    height: 44,
+    minWidth: 120,
+    height: 46,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#111",
+    borderColor: "#cbd5e1",
+    backgroundColor: "#ffffff",
+  },
+  resetButtonPrimary: {
+    minWidth: 120,
+    height: 46,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#2563eb",
+    backgroundColor: "#2563eb",
   },
 });

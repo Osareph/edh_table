@@ -9,6 +9,8 @@ interface EdhTableState {
   setButtonClicked: (playerNumber: number, value: boolean) => void;
   numberOfPlayers: number;
   setNumberOfPlayers: (value: number) => void;
+  startingLife: number;
+  setStartingLife: (value: number) => void;
   resetAll: () => void;
 }
 
@@ -20,6 +22,7 @@ const buttonClickedInitialState: Record<2 | 3 | 4, boolean> = {
 
 export const useEdhTableStore = create<EdhTableState>()((set) => ({
   numberOfPlayers: 0,
+  startingLife: 40,
   buttonClicked: {
     2: false,
     3: false,
@@ -28,7 +31,11 @@ export const useEdhTableStore = create<EdhTableState>()((set) => ({
   setNumberOfPlayers: (value: number) => set({ numberOfPlayers: value }),
   setButtonClicked: (playerNumber: number, value: boolean) =>
     set((state) => {
-      const nextState: Record<2 | 3 | 4, boolean> = { 2: false, 3: false, 4: false };
+      const nextState: Record<2 | 3 | 4, boolean> = {
+        2: false,
+        3: false,
+        4: false,
+      };
       const key = playerNumber as 2 | 3 | 4;
 
       if (key in nextState) {
@@ -41,5 +48,11 @@ export const useEdhTableStore = create<EdhTableState>()((set) => ({
         buttonClicked: nextState,
       };
     }),
-  resetAll: () => set({ numberOfPlayers: 0, buttonClicked: buttonClickedInitialState }),
+  setStartingLife: (value: number) => set({ startingLife: value }),
+  resetAll: () =>
+    set({
+      numberOfPlayers: 0,
+      startingLife: 40,
+      buttonClicked: buttonClickedInitialState,
+    }),
 }));

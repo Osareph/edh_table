@@ -61,4 +61,3 @@ Use this file to judge whether a request belongs in the project.
 - If it directly helps a player run a Commander match, it is likely in scope.
 - If it requires a second app layer, remote services, deck databases, or full game management, it is out of scope.
 - If a request is broad, speculative, or would add a large feature surface, it should be rejected as "not planned" unless it clearly remains within the core tabletop utility goal.
-

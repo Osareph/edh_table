@@ -25,6 +25,7 @@ EDH Table is a mobile-first companion app for Magic: The Gathering Commander gam
 ### 1. Home screen
 
 The app opens on a home screen with a title and two primary actions:
+
 - Start Game
 - Settings
 
@@ -33,6 +34,7 @@ The Start Game action navigates to the player-count selection screen.
 ### 2. Player selection screen
 
 The user chooses the game size:
+
 - 2 Players
 - 3 Players
 - 4 Players
@@ -42,6 +44,7 @@ The selected option is highlighted. The Start action is only enabled when a vali
 ### 3. Table screen
 
 The app displays one card per player. Each card includes:
+
 - Player label
 - Starting life selector (20, 40, 60)
 - Current life total
@@ -50,6 +53,7 @@ The app displays one card per player. Each card includes:
 - Commander damage rows against other players
 
 The app also has global controls for:
+
 - roll D20
 - flip coin
 - reset round
@@ -158,4 +162,3 @@ The app stores a record of all active players keyed by player number.
 - Custom counter presets
 - Accessibility improvements including larger touch targets and screen-reader labels
 - Save/load game state for mid-match continuation
-
