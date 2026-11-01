@@ -1,57 +1,18 @@
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { TEST_IDS } from "@/constants/testIds";
 import { Button } from "@expo/ui";
-import { router } from "expo-router";
-import { useEdhTable } from "@/hooks/useEdhTable";
 
-const MIN_STARTING_LIFE = 1;
-const MAX_STARTING_LIFE = 999;
+import { useNumberPlayerScreen } from "@/hooks/useNumberPlayerScreen";
 
 export default function numberPlayer() {
   const {
-    numberOfPlayers,
-    resetAll,
-    setNumberOfPlayers,
     buttonClicked,
-    setButtonClicked,
+    handleBack,
+    handlePlayerCountSelect,
+    handleStartGame,
+    handleStartingLifeChange,
     startingLife,
-    setStartingLife,
-  } = useEdhTable();
-
-  const handlePlayerCountSelect = (value: 2 | 3 | 4) => {
-    setNumberOfPlayers(value);
-    setButtonClicked(value, true);
-  };
-
-  const handleStartingLifeChange = (delta: number) => {
-    setStartingLife(
-      Math.min(
-        MAX_STARTING_LIFE,
-        Math.max(MIN_STARTING_LIFE, startingLife + delta),
-      ),
-    );
-  };
-
-  const handleStartGame = () => {
-    if (
-      numberOfPlayers === 2 ||
-      numberOfPlayers === 3 ||
-      numberOfPlayers === 4
-    ) {
-      router.navigate("/screen/edhTable");
-      return;
-    }
-
-    Alert.alert(
-      "Choose players",
-      "Please select how many players are in the game before starting.",
-    );
-  };
-
-  const handleBack = () => {
-    resetAll();
-    router.navigate("/screen/home");
-  };
+  } = useNumberPlayerScreen();
 
   return (
     <View style={styles.view}>
