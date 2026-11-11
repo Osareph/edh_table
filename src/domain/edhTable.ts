@@ -118,7 +118,8 @@ export function adjustCommanderDamage(
     ...current.commanderDamage,
     [sourcePlayer]: Math.max(0, previousDamage + delta),
   };
-  const actualDamageDelta = (nextCommanderDamage[sourcePlayer] ?? 0) - previousDamage;
+  const actualDamageDelta =
+    (nextCommanderDamage[sourcePlayer] ?? 0) - previousDamage;
 
   return {
     ...players,

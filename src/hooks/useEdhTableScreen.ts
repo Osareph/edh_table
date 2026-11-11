@@ -5,34 +5,21 @@ import { useEdhTable } from "@/hooks/useEdhTable";
 import {
   adjustCommanderDamage,
   adjustLife,
-  createInitialPlayers,
-  getDefaultPlayerState,
-  getPlayerCount,
+  createInitialSession,
+  type EdhTableSessionState,
   incrementCounter,
+  randomizeStartingPlayer,
   resetCounter,
+  resetGame,
   resetRound,
-  type PlayerState,
-} from "@/domain/edhTable";
+} from "@/domain/edhTableSession";
+import { getPlayerCount } from "@/domain/edhTable";
 
 export function useEdhTableScreen() {
   const { numberOfPlayers, startingLife } = useEdhTable();
-  const [startingPlayer, setStartingPlayer] = useState<number | null>(null);
-  const [players, setPlayers] = useState<Record<number, PlayerState>>(() => {
-    const basePlayers = createInitialPlayers();
-    return Object.fromEntries(
-      Object.entries(basePlayers).map(([playerNumber, player]) => {
-        const key = Number(playerNumber);
-        return [
-          key,
-          {
-            ...player,
-            startingLife,
-            life: startingLife,
-          },
-        ];
-      }),
-    );
-  });
+  const [session, setSession] = useState<EdhTableSessionState>(() =>
+    createInitialSession(getPlayerCount(numberOfPlayers), startingLife),
+  );
 
   const playerCount = useMemo(
     () => getPlayerCount(numberOfPlayers),
@@ -40,18 +27,18 @@ export function useEdhTableScreen() {
   );
 
   const handleAdjustLife = (player: number, delta: number) => {
-    setPlayers((prev) => adjustLife(prev, player, delta));
+    setSession((prev) => adjustLife(prev, player, delta));
   };
 
   const handleIncrementCounter = (
     player: number,
     key: "poison" | "experience",
   ) => {
-    setPlayers((prev) => incrementCounter(prev, player, key));
+    setSession((prev) => incrementCounter(prev, player, key));
   };
 
   const handleResetCounter = (player: number, key: "poison" | "experience") => {
-    setPlayers((prev) => resetCounter(prev, player, key));
+    setSession((prev) => resetCounter(prev, player, key));
   };
 
   const handleAdjustCommanderDamage = (
@@ -59,40 +46,27 @@ export function useEdhTableScreen() {
     targetPlayer: number,
     delta: number,
   ) => {
-    setPlayers((prev) =>
-      adjustCommanderDamage(prev, targetPlayer, sourcePlayer, delta),
+    setSession((prev) =>
+      adjustCommanderDamage(prev, sourcePlayer, targetPlayer, delta),
     );
   };
 
   const handleResetRound = () => {
-    setPlayers((prev) => resetRound(prev, playerCount));
+    setSession((prev) => resetRound(prev));
   };
 
   const handleResetGame = () => {
-    const resetPlayers = Object.fromEntries(
-      Array.from({ length: playerCount }, (_, index) => {
-        const playerNumber = index + 1;
-        return [
-          playerNumber,
-          {
-            ...getDefaultPlayerState(),
-            startingLife,
-            life: startingLife,
-          },
-        ];
-      }),
-    );
-
-    setPlayers((prev) => ({
-      ...prev,
-      ...resetPlayers,
-    }));
-    setStartingPlayer(null);
+    setSession((prev) => {
+      return resetGame({
+        ...prev,
+        playerCount,
+        startingLife,
+      });
+    });
   };
 
-  const randomizeStartingPlayer = () => {
-    const nextPlayer = Math.floor(Math.random() * playerCount) + 1;
-    setStartingPlayer(nextPlayer);
+  const randomizeStartingPlayerAction = () => {
+    setSession((prev) => randomizeStartingPlayer(prev));
   };
 
   const goHome = () => {
@@ -108,8 +82,8 @@ export function useEdhTableScreen() {
     handleResetGame,
     handleResetRound,
     playerCount,
-    players,
-    randomizeStartingPlayer,
-    startingPlayer,
+    players: session.players,
+    randomizeStartingPlayer: randomizeStartingPlayerAction,
+    startingPlayer: session.startingPlayer,
   };
 }
