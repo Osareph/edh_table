@@ -16,8 +16,7 @@ import {
 
 export function useEdhTableScreen() {
   const { numberOfPlayers, startingLife } = useEdhTable();
-  const [diceValue, setDiceValue] = useState<number | null>(null);
-  const [coinSide, setCoinSide] = useState<"Heads" | "Tails" | null>(null);
+  const [startingPlayer, setStartingPlayer] = useState<number | null>(null);
   const [players, setPlayers] = useState<Record<number, PlayerState>>(() => {
     const basePlayers = createInitialPlayers();
     return Object.fromEntries(
@@ -88,21 +87,19 @@ export function useEdhTableScreen() {
       ...prev,
       ...resetPlayers,
     }));
-    setDiceValue(null);
-    setCoinSide(null);
+    setStartingPlayer(null);
   };
 
-  const rollDice = () => setDiceValue(Math.floor(Math.random() * 20) + 1);
-  const flipCoin = () => setCoinSide(Math.random() > 0.5 ? "Heads" : "Tails");
+  const randomizeStartingPlayer = () => {
+    const nextPlayer = Math.floor(Math.random() * playerCount) + 1;
+    setStartingPlayer(nextPlayer);
+  };
 
   const goHome = () => {
     router.navigate("/screen/home");
   };
 
   return {
-    coinSide,
-    diceValue,
-    flipCoin,
     goHome,
     handleAdjustCommanderDamage,
     handleAdjustLife,
@@ -112,6 +109,7 @@ export function useEdhTableScreen() {
     handleResetRound,
     playerCount,
     players,
-    rollDice,
+    randomizeStartingPlayer,
+    startingPlayer,
   };
 }

@@ -1,14 +1,20 @@
-import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Animated,
+  Easing,
+} from "react-native";
 import { Button } from "@expo/ui";
+import { useEffect, useRef } from "react";
 
 import { useEdhTableScreen } from "@/hooks/useEdhTableScreen";
 import { getPlayer } from "@/domain/edhTable";
 
 export default function edhTable() {
   const {
-    coinSide,
-    diceValue,
-    flipCoin,
     goHome,
     handleAdjustCommanderDamage,
     handleAdjustLife,
@@ -18,8 +24,33 @@ export default function edhTable() {
     handleResetRound,
     playerCount,
     players,
-    rollDice,
+    randomizeStartingPlayer,
+    startingPlayer,
   } = useEdhTableScreen();
+
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (startingPlayer === null) {
+      pulseAnim.setValue(1);
+      return;
+    }
+
+    Animated.sequence([
+      Animated.timing(pulseAnim, {
+        toValue: 1.2,
+        duration: 150,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.timing(pulseAnim, {
+        toValue: 1,
+        duration: 180,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [pulseAnim, startingPlayer]);
 
   return (
     <View style={styles.container}>
@@ -36,19 +67,14 @@ export default function edhTable() {
 
       <View style={styles.toolsRow}>
         <View style={styles.toolGroup}>
-          <Text style={styles.toolLabel}>Dice</Text>
+          <Text style={styles.toolLabel}>Start player</Text>
           <Button
-            label={diceValue ? `D20: ${diceValue}` : "Roll D20"}
-            onPress={rollDice}
-            style={styles.toolButton}
-          />
-        </View>
-
-        <View style={styles.toolGroup}>
-          <Text style={styles.toolLabel}>Coin</Text>
-          <Button
-            label={coinSide ?? "Flip coin"}
-            onPress={flipCoin}
+            label={
+              startingPlayer !== null
+                ? `Player ${startingPlayer}`
+                : "Choose random player"
+            }
+            onPress={randomizeStartingPlayer}
             style={styles.toolButton}
           />
         </View>
@@ -59,10 +85,21 @@ export default function edhTable() {
           {Array.from({ length: playerCount }, (_, index) => {
             const playerNumber = index + 1;
             const player = getPlayer(players, playerNumber);
+            const isStartingPlayer = playerNumber === startingPlayer;
 
             return (
-              <View key={playerNumber} style={styles.playerCard}>
-                <Text style={styles.playerLabel}>Player {playerNumber}</Text>
+              <Animated.View
+                key={playerNumber}
+                style={[
+                  styles.playerCard,
+                  isStartingPlayer && styles.winnerCard,
+                  isStartingPlayer && { transform: [{ scale: pulseAnim }] },
+                ]}
+              >
+                <Text style={styles.playerLabel}>
+                  Player {playerNumber}
+                  {isStartingPlayer ? " • Start" : ""}
+                </Text>
                 <Text style={styles.life}>{player.life}</Text>
 
                 <View style={styles.statRow}>
@@ -163,7 +200,7 @@ export default function edhTable() {
                     );
                   })}
                 </View>
-              </View>
+              </Animated.View>
             );
           })}
         </View>
@@ -224,8 +261,7 @@ const styles = StyleSheet.create({
   },
   toolsRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
+    justifyContent: "center",
     marginBottom: 18,
   },
   toolGroup: {
@@ -248,7 +284,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   toolButton: {
-    minWidth: 120,
+    minWidth: 180,
     height: 40,
     borderRadius: 12,
     borderWidth: 1,
@@ -274,6 +310,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 4,
+  },
+  winnerCard: {
+    borderColor: "#f59e0b",
+    backgroundColor: "#fff7ed",
+    shadowColor: "#f59e0b",
+    shadowOpacity: 0.3,
+    shadowRadius: 18,
   },
   playerLabel: {
     fontSize: 18,
