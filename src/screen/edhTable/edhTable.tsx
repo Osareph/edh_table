@@ -96,25 +96,30 @@ export default function edhTable() {
                   isStartingPlayer && { transform: [{ scale: pulseAnim }] },
                 ]}
               >
-                <Text style={styles.playerLabel}>
-                  Player {playerNumber}
-                  {isStartingPlayer ? " • Start" : ""}
-                </Text>
-                <Text style={styles.life}>{player.life}</Text>
+                <View style={styles.playerHeader}>
+                  <Text style={styles.playerLabel}>Player {playerNumber}</Text>
+                  {isStartingPlayer ? (
+                    <View style={styles.startBadge}>
+                      <Text style={styles.startBadgeText}>START</Text>
+                    </View>
+                  ) : null}
+                </View>
 
-                <View style={styles.statRow}>
-                  <Text style={styles.metaLabel}>Life</Text>
-                  <View style={styles.counterRow}>
+                <View style={styles.lifePanel}>
+                  <Text style={styles.lifeLabel}>Life</Text>
+                  <View style={styles.lifeRow}>
                     <Button
                       label="-"
                       onPress={() => handleAdjustLife(playerNumber, -1)}
-                      style={styles.button}
+                      style={styles.lifeButton}
                     />
-                    <Text style={styles.metaValue}>{player.life}</Text>
+                    <View style={styles.lifeValuePill}>
+                      <Text style={styles.lifeValue}>{player.life}</Text>
+                    </View>
                     <Button
                       label="+"
                       onPress={() => handleAdjustLife(playerNumber, 1)}
-                      style={styles.button}
+                      style={styles.lifeButton}
                     />
                   </View>
                 </View>
@@ -324,10 +329,68 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: "#1f2937",
   },
-  life: {
-    fontSize: 44,
-    fontWeight: "800",
+  playerHeader: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  startBadge: {
+    backgroundColor: "#f59e0b",
+    borderRadius: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginLeft: 8,
+  },
+  startBadgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  lifePanel: {
+    width: "100%",
+    backgroundColor: "#f8fafc",
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
     marginBottom: 12,
+    alignItems: "center",
+  },
+  lifeLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#475569",
+    marginBottom: 8,
+  },
+  lifeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  lifeButton: {
+    minWidth: 42,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    backgroundColor: "#ffffff",
+  },
+  lifeValuePill: {
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+  },
+  lifeValue: {
+    minWidth: 24,
+    textAlign: "center",
+    fontSize: 17,
+    fontWeight: "700",
     color: "#111827",
   },
   statRow: {
