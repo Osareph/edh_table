@@ -2,7 +2,7 @@
 
 ## Overview
 
-EDH Table is a mobile-first companion app for Magic: The Gathering Commander games. The app helps players track life totals, poison counters, experience counters, and commander damage across 2 to 4 players. It also includes a die roller and coin flip for table convenience.
+EDH Table is a mobile-first companion app for Magic: The Gathering Commander games. The app helps players track life totals, poison counters, experience counters, and commander damage across 2 to 4 players. It also includes a quick random start-player selector so the table can determine the first turn without separate dice or coin tools.
 
 ## Goals
 
@@ -11,6 +11,7 @@ EDH Table is a mobile-first companion app for Magic: The Gathering Commander gam
 - Support 2, 3, and 4-player Commander matches
 - Minimize accidental state changes while keeping interaction fast
 - Make the app readable in a normal tabletop setting
+- Let players randomly choose a starting player from the active table
 
 ## Non-Goals
 
@@ -19,6 +20,7 @@ EDH Table is a mobile-first companion app for Magic: The Gathering Commander gam
 - Multiplayer networking or cloud sync
 - Card search or rule lookup
 - Tournament-grade compliance features
+- Dice or coin-based utility features beyond the start-player selector
 
 ## User Flow
 
@@ -46,16 +48,15 @@ The selected option is highlighted. The Start action is only enabled when a vali
 The app displays one card per player. Each card includes:
 
 - Player label
-- Starting life selector (20, 40, 60)
 - Current life total
 - Poison counter
 - Experience counter
 - Commander damage rows against other players
+- Visible start-player badge when the player has been selected to begin
 
 The app also has global controls for:
 
-- roll D20
-- flip coin
+- choose random start player
 - reset round
 - reset game
 
@@ -67,6 +68,7 @@ The app also has global controls for:
 - Default starting life is 40.
 - Players can set a custom starting life to 20, 40, or 60.
 - Changing starting life updates the current life total for that player.
+- The app can randomly choose a start player from the active player count.
 
 ### Life tracking
 
@@ -93,19 +95,20 @@ The app also has global controls for:
 - Each player tracks damage dealt by every other player.
 - Damage is adjusted independently per attacker/target pair.
 - Damage cannot go below 0.
+- Increasing commander damage reduces the target player's life by the actual damage delta, and decreasing it restores life accordingly.
 - Commander damage is visually grouped under each player card.
 
 ### Game reset controls
 
 - Reset round restores each player to their starting life and clears poison and commander damage while preserving experience value.
-- Reset game restores each player to default starting conditions and clears dice/coin state.
+- Reset game restores each player to default starting conditions and clears the current random start-player selection.
 - Reset actions should be explicit and easy to trigger.
 
-### Dice and coin tools
+### Start-player tool
 
-- Dice tool rolls a D20 result from 1 to 20.
-- Coin tool flips heads or tails.
-- Results are displayed as visible state in the top tool row.
+- The app provides a single action to choose a random player from 1 to the active player count.
+- The selected player is highlighted in the table and marked as the starting player.
+- Re-triggering the action picks a fresh random player.
 
 ## Data Model
 
@@ -117,7 +120,9 @@ Each player has the following state:
 - startingLife: number
 - commanderDamage: Record<number, number>
 
-The app stores a record of all active players keyed by player number.
+The app stores a record of all active players keyed by player number. The table session also tracks:
+
+- startingPlayer: number | null
 
 ## UI Behaviour
 
@@ -127,12 +132,14 @@ The app stores a record of all active players keyed by player number.
 - Each player card is a compact, readable panel.
 - The row layout keeps labels and counters aligned on one line where appropriate.
 - Global tools are visible above the player grid.
+- The active starting player is visually emphasized with a clear badge and animation.
 
 ### Interaction rules
 
 - Tap controls should be fast and responsive.
 - Long press should be reserved for reset actions for poison and experience counters.
 - Buttons should communicate intent clearly without requiring extra tutorial steps.
+- The start-player tool should be a single, obvious action that can be used without extra setup.
 
 ## Edge Cases
 
@@ -141,6 +148,7 @@ The app stores a record of all active players keyed by player number.
 - If a player is missing from state, create a default player state for them.
 - If commander damage data is undefined, treat it as 0.
 - If the user resets the game while no players are selected, the app should recover gracefully.
+- If no start player has been chosen yet, the start-player visual state should be hidden.
 
 ## Acceptance Criteria
 
@@ -151,8 +159,8 @@ The app stores a record of all active players keyed by player number.
 5. User can tap an experience counter to increment and long press to reset to 0.
 6. User can set starting life to 20, 40, or 60.
 7. User can adjust commander damage for each opposing player.
-8. User can reset round or reset game.
-9. Dice and coin tools work without breaking game state.
+8. User can randomly choose the starting player from the active table.
+9. User can reset round or reset game.
 10. Build passes TypeScript and Expo web export checks.
 
 ## Future Enhancements
@@ -162,3 +170,4 @@ The app stores a record of all active players keyed by player number.
 - Custom counter presets
 - Accessibility improvements including larger touch targets and screen-reader labels
 - Save/load game state for mid-match continuation
+- Additional table tools beyond life, poison, experience, and commander damage

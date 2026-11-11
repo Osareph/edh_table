@@ -11,7 +11,7 @@ This project is a lightweight EDH Commander companion app for tracking game stat
 - Poison counter tracking
 - Experience counter tracking
 - Commander damage tracking per attacker/target pair
-- Dice and coin tools for table convenience
+- Random start-player selection for determining turn order
 - Quick reset controls for round and full game state
 - Mobile-first UI optimized for tabletop use
 - Small, focused UX improvements that improve gameplay flow
@@ -27,6 +27,7 @@ This project is a lightweight EDH Commander companion app for tracking game stat
 - Deck import/export
 - Analytics dashboards or player statistics beyond current match state
 - Complex AI, coaching, or recommendation systems
+- Large dice or coin utility features that duplicate the start-player selector
 
 ## Product Principles
 
@@ -53,6 +54,7 @@ Any work in scope should:
 - Features that attempt to simulate rules interpretation, card legality, or deck construction are out of scope.
 - New features should be small and composable, not large platform expansions.
 - If a request would require multiplayer infrastructure or persistent account systems, it is outside scope.
+- A request is in scope when it helps a table quickly determine turn order, manage combat state, and reset cleanly between rounds.
 
 ## Triage Guidance
 
@@ -61,3 +63,4 @@ Use this file to judge whether a request belongs in the project.
 - If it directly helps a player run a Commander match, it is likely in scope.
 - If it requires a second app layer, remote services, deck databases, or full game management, it is out of scope.
 - If a request is broad, speculative, or would add a large feature surface, it should be rejected as "not planned" unless it clearly remains within the core tabletop utility goal.
+- Requests for a single, table-friendly random start-player selector remain in scope because they directly support turn order without broadening the product into utility game systems.
