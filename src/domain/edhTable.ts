@@ -113,18 +113,18 @@ export function adjustCommanderDamage(
   delta: number,
 ): Record<number, PlayerState> {
   const current = players[targetPlayer] ?? getDefaultPlayerState();
+  const previousDamage = current.commanderDamage[sourcePlayer] ?? 0;
   const nextCommanderDamage = {
     ...current.commanderDamage,
-    [sourcePlayer]: Math.max(
-      0,
-      (current.commanderDamage[sourcePlayer] ?? 0) + delta,
-    ),
+    [sourcePlayer]: Math.max(0, previousDamage + delta),
   };
+  const actualDamageDelta = (nextCommanderDamage[sourcePlayer] ?? 0) - previousDamage;
 
   return {
     ...players,
     [targetPlayer]: {
       ...current,
+      life: Math.max(0, current.life - actualDamageDelta),
       commanderDamage: nextCommanderDamage,
     },
   };
